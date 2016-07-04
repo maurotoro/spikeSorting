@@ -100,7 +100,7 @@ def main(N=3):
     # weights = 'uniform'
     cols = 'rgbc'
     n_clusters = 4
-    algo = cluster.KMeans(n_clusters, max_iter=500, n_init=100)
+    algo = cluster.KMeans(n_clusters, max_iter=500, n_init=300)
     #  cluster.MeanShift(bandwidth=bandwidth,bin_seeding=0)
     cls = algo.fit(r)
     fa = plt.figure()
@@ -127,4 +127,4 @@ def main(N=3):
     plt.tight_layout()
 
 if __name__ == main():
-    main(N=10)
+    main(N=5)
