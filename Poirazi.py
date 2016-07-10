@@ -12,6 +12,14 @@ import scipy.io as sio
 
 
 def Dwestim(sig, w=5, step=1):
+    '''
+        Goes through the signal meassuring the eclidean distance of each
+        w points window in step steps. Making each signal more informative
+        about the underlying content.
+        TODO: Use this a set of some 3 Dw conversions to PCA the signal.
+        TODO: Think on this new representation of the signal as a new feature
+              space for the signals. 
+    '''
     #sig = np.array((sig-np.mean(sig))/np.std(sig))
     f = np.array([sig[i:i+w:step] for i in range(len(sig)-w)])
     Dw = np.sqrt(np.sum(np.diff(f)**2, 1))
@@ -88,7 +96,7 @@ fSig = ['C_Burst_Easy2_noise015.mat', 'C_Difficult1_noise005.mat',
 
 def main(N=3):
     fname = fPA+fPB+fSig[N]
-    fdata = sio.loadmat(fname, struct_as_record=0, squeeze_me=1)
+    sio.loadmat(fname, struct_as_record=0, squeeze_me=1)
     sig = -fdata['data']
     dF = Dwestim(sig, w=5, step=1)
     dQ = Dwestim(sig, w=15, step=1)
@@ -99,7 +107,8 @@ def main(N=3):
     r = np.array([cart2pol(i, j) for i, j in zip(x, y)])
     # weights = 'uniform'
     cols = 'rgbc'
-    n_clusters = 4
+    # TODO: Look for hierrchical clustering
+    n_clusters = 3
     algo = cluster.KMeans(n_clusters, max_iter=500, n_init=300)
     #  cluster.MeanShift(bandwidth=bandwidth,bin_seeding=0)
     cls = algo.fit(r)
