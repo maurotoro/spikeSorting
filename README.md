@@ -9,10 +9,21 @@ Petrantonakis, P.C., Poirazi, P., 2015. A Simple Method to Simultaneously Detect
 Using Quian Quirogas dataset you can compare different windows sizes and steps to get better clusters
 
 https://vis.caltech.edu/~rodri/Wave_clus/Wave_clus_home.htm
+Dataset from:
+Kampf Lab:  Providing high density electrodes data openly and freely.
+http://www.kampff-lab.org/validating-electrodes/
+https://drive.google.com/folderview?id=0B6paC2__-QYFNEt6VnZ0QVlkYlk&usp=drive_web
+
+If theres a problem with any share and you hold the rights to them, please inform me to delete them.
 
 Still my clustering sucks ass, but may be betterify the clustering...also...
 
 If I where to use the Dw(1-20) as features, shouldn't that be an amazing space for pca? LEt's try that...complicate yourselfe, MF.
+
+Also, lastthough has a new idea on how to do analyze raw electrode data, and maybe an interesting insight
+
+maurotoro2016
+imakoopa2016
 
 Mucha Suerte!
 
