@@ -20,9 +20,6 @@ If theres a problem with any share and you hold the rights to them, please infor
 
 Still my clustering sucks ass, but may be betterify the clustering...also...spikes suck.
 
-If I where to use the Dw(1-Nyq) as features, shouldn't that be an amazing space for pca? Let's try that...complicate yourselves, that's the last thought.
-
-Also, lastThough has a new idea on how to do analyze raw electrode data, and maybe an interesting insight
 
 maurotoro2016
 imakoopa2016
