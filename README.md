@@ -16,13 +16,8 @@ http://www.kampff-lab.org/validating-electrodes/
 
 https://drive.google.com/folderview?id=0B6paC2__-QYFNEt6VnZ0QVlkYlk&usp=drive_web
 
-If theres a problem with any share and you hold the rights to them, please inform me to delete them.
-
-Still my clustering sucks ass, but may be betterify the clustering...also...spikes suck.
-
 
 maurotoro2016
-
 imakoopa2016
 
 Mucha Suerte!
