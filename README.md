@@ -22,9 +22,7 @@ Still my clustering sucks ass, but may be betterify the clustering...also...spik
 
 
 maurotoro2016
+
 imakoopa2016
 
 Mucha Suerte!
-
-Maurotoro
-imakoopa2016

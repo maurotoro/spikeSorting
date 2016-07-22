@@ -11,14 +11,20 @@ from sklearn import cluster
 import scipy.io as sio
 
 
-def Dwestim(sig, w=5, step=1):
-    #sig = np.array((sig-np.mean(sig))/np.std(sig))
-    f = np.array([sig[i:i+w:step] for i in range(len(sig)-w)])
-    Dw = np.sqrt(np.sum(np.diff(f)**2, 1))
-    return np.array(Dw)
+def Dw(sig, w=5, s=1, norm=0):
+    '''
+        Goes through the signal summing the euclidean distance of each
+        w points window in s steps. Making each signal more informative
+        about the underlying content.
+    '''
+    if norm == 1:
+        sig = np.array((sig-np.mean(sig))/np.std(sig))
+    f = np.array([sig[i*s:(i*s)+w] for i in range(int((len(sig)-w)/s)+1)])
+    dw = np.sqrt(np.sum(np.diff(f, 1, axis=0)**2, 1))
+    return dw
 
 
-def spkDet(signal, method='MAD', T=3, ori='neg'):
+def spkDet(signal, method='QQ', T=4, ori='neg'):
     '''
     Detect events on signal depending on method. Can be:
     MAD:
@@ -40,10 +46,11 @@ def spkDet(signal, method='MAD', T=3, ori='neg'):
         thresh = -thresh
     elif ori == 'pos':
         thresh = thresh
+    lim = 15
     crX = np.nonzero(signal < thresh)[0]  # Threshold crossings
-    suX = np.nonzero(np.diff(crX) > 15)[0]  # only first crossing
+    suX = np.nonzero(np.diff(crX) > lim)[0]  # only first crossing
     spX = crX[suX[1:]]
-    spkIX = [np.argmin(signal[spX[i]-30:spX[i]+30])+spX[i]-30
+    spkIX = [np.argmin(signal[spX[i]-lim:spX[i]+lim])+spX[i]-lim
                 for i in range(len(spX))]
     return spkIX
 
@@ -51,11 +58,11 @@ def spkDet(signal, method='MAD', T=3, ori='neg'):
 def cart2pol(x, y):
     rho = np.sqrt(x**2 + y**2)
     phi = np.arctan(y/x)
-    return(phi, rho)
+    return(rho, phi)
 
 
 
-def spkAlign(spX, signal, d=10, D=[12, 20], method='MIN'):
+def spkAlign(spX, signal, d=10, D=[8, 30], method='MIN'):
     '''
     Align detected spikes and return the waveform from D[0] to D[1]
     MIN: Use the argmin from d+\- spX
@@ -86,13 +93,13 @@ fSig = ['C_Burst_Easy2_noise015.mat', 'C_Difficult1_noise005.mat',
         ]
 
 
-def main(N=3):
+def main(N):
     fname = fPA+fPB+fSig[N]
     fdata = sio.loadmat(fname, struct_as_record=0, squeeze_me=1)
     sig = -fdata['data']
-    dF = Dwestim(sig, w=5, step=1)
-    dQ = Dwestim(sig, w=15, step=1)
-    spIX = spkDet(-dF, method='QQ', T=4.5, ori='neg')
+    dF = Dw(sig, w=5, s=1)
+    dQ = Dw(sig, w=15, s=1)
+    spIX = spkDet(-dF, method='QQ', T=4, ori='neg')
     waves = np.array(spkAlign(spIX, sig, D=[12, 12]))
     x = np.array([dF[i] for i in spIX[:-10]])
     y = np.array([dQ[i] for i in spIX[:-10]])
@@ -126,5 +133,4 @@ def main(N=3):
     fa.suptitle(fSig[N], va='top', ha='center', x=.5, y=.95)
     plt.tight_layout()
 
-if __name__ == main():
-    main(N=5)
+main(5)
