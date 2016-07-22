@@ -2,7 +2,15 @@
 """
 Created on Wed Jun 29 14:52:59 2016
 
-@author: soyunkope
+Crude implementation of the proposal by:
+    Panagiotis C. Petrantonakis and Panayiota Poirazi, 2015 
+For this to work you'll need to  have installed all necesary python
+libraries, look at the import statements and change the paths in the functions
+
+@author: imakoopa
+INDP2015
+Champalimaud Centre for the Unknown
+
 """
 
 import numpy as np
@@ -24,7 +32,20 @@ def Dw(sig, w=5, s=1, norm=0):
     return dw
 
 
-def spkDet(signal, method='QQ', T=4, ori='neg'):
+def cart2pol(x, y):
+    r = np.sqrt(x**2 + y**2)
+    ph = np.arctan2(y, x)
+    return(r, ph)
+
+
+def cart3d2sphe(x, y, z):
+    r = np.sqrt(x**2 + y**2 + z**2)
+    th = np.arccos(z/r)
+    ph = np.arctan2(y, x)
+    return r, th, ph
+
+
+def spkDet(signal, method='QQ', T=3, ori='neg', lim=10):
     '''
     Detect events on signal depending on method. Can be:
     MAD:
@@ -33,8 +54,8 @@ def spkDet(signal, method='QQ', T=4, ori='neg'):
     QQ:
         Quian-Quiroga's .75 Gaussian CDF of the median of the signal:
             median(|signal|/.6745)
-    Then uses that method times T to detect dependind on orientation ori
-    Detect crossings and keep only first point
+    Then uses that method times T to detect depending on orientation ori
+    Detect crossings and keep only min point
     '''
     if method == 'QQ':
         QQ = np.median(np.abs(signal)/0.6745)
@@ -46,23 +67,15 @@ def spkDet(signal, method='QQ', T=4, ori='neg'):
         thresh = -thresh
     elif ori == 'pos':
         thresh = thresh
-    lim = 15
     crX = np.nonzero(signal < thresh)[0]  # Threshold crossings
     suX = np.nonzero(np.diff(crX) > lim)[0]  # only first crossing
     spX = crX[suX[1:]]
     spkIX = [np.argmin(signal[spX[i]-lim:spX[i]+lim])+spX[i]-lim
-                for i in range(len(spX))]
+             for i in range(len(spX))]
     return spkIX
 
 
-def cart2pol(x, y):
-    rho = np.sqrt(x**2 + y**2)
-    phi = np.arctan(y/x)
-    return(rho, phi)
-
-
-
-def spkAlign(spX, signal, d=10, D=[8, 30], method='MIN'):
+def spkAlign(spX, signal, d=10, D=[12, 20], method='MIN'):
     '''
     Align detected spikes and return the waveform from D[0] to D[1]
     MIN: Use the argmin from d+\- spX
@@ -72,31 +85,72 @@ def spkAlign(spX, signal, d=10, D=[8, 30], method='MIN'):
         for i in range(len(spX)):
             spkIX[i] = np.argmin(signal[spX[i]-d:spX[i]+d])+(spX[i]-d)
     waves = [signal[spkIX[j]-D[0]:spkIX[j]+D[1]]
-                      for j in range(len(spkIX))]
+             for j in range(len(spkIX))]
     return waves
 
 
-fPA = '/Users/soyunkope'
-fPB = '/Documents/DataSets/Ephys/Simulator/'
-fSig = ['C_Burst_Easy2_noise015.mat', 'C_Difficult1_noise005.mat',
-        'C_Difficult1_noise01.mat', 'C_Difficult1_noise015.mat',
-        'C_Difficult1_noise02.mat', 'C_Difficult2_noise005.mat',
-        'C_Difficult2_noise01.mat', 'C_Difficult2_noise015.mat',
-        'C_Difficult2_noise02.mat', 'C_Drift_Easy2_noise015.mat',
-        'C_Easy1_noise005.mat', 'C_Easy1_noise01.mat', 'C_Easy1_noise015.mat',
-        'C_Easy1_noise01_short.mat', 'C_Easy1_noise02.mat',
-        'C_Easy1_noise025.mat', 'C_Easy1_noise03.mat',
-        'C_Easy1_noise035.mat', 'C_Easy1_noise04.mat',
-        'C_Easy2_noise005.mat', 'C_Easy2_noise01.mat',
-        'C_Easy2_noise015.mat', 'C_Easy2_noise02.mat',
-        'C_Test_LFPcorr_Easy2_noise015.mat',  'times_C_Difficult1_noise015.mat'
-        ]
+def loadAK(filename, numChannels, dtype):
+    '''
+    Load electrodes data into memory, filename should be
+    fpa+fpb+ele
+    Where:
+        fpa = '/Users/soyunkope/Documents/scriptkidd/git/spikeSorting/'
+        For test with Kampf's:
+            fpb = 'data/kampfLab/'
+            ele = 'adc2014-11-25T23_00_08.bin' 
+
+    Filename:  String that points to the raw data file
+    numChannels:  Number of channels on the probe
+    dtype:  DType of the record
+    '''
+    fdata = np.fromfile(filename,dtype=dtype)
+    numsamples = int(len(fdata) / numChannels)
+    data = np.reshape(fdata,(numsamples,numChannels))
+    return (np.transpose(data))
+
+def loadJP(uarray, electrode, dur):
+    '''
+    For test with Joe's electrodes
+        uarray:  str(Array) ['F32', 'L32']
+        GT02 = '/Users/soyunkope/Documents/INDP2015/2016_S02/R01_JoePaton/00_AutoSpikeSorting/TestDAta/GT02/GroundTruth6ch.dat'
+    '''
+    fpa = '/Users/soyunkope/Documents/scriptkidd/git/spikeSorting/'
+    fpb = 'data/patonLab/'
+    fur = str(uarray)+'/'+str(electrode)+'/'
+    fn = 'ele'+str(electrode)+'.dat'
+    filename = fpa+fpb+fur+fn
+    signal = np.fromfile(filename, dtype='int', count=dur)
+    return signal
+
+
+def loadQQ(N):
+    fPA = '/Users/soyunkope'
+    fPB = '/Documents/DataSets/Ephys/Simulator/'
+    fSig = ['C_Burst_Easy2_noise015.mat', 'C_Difficult1_noise005.mat',
+            'C_Difficult1_noise01.mat', 'C_Difficult1_noise015.mat',
+            'C_Difficult1_noise02.mat', 'C_Difficult2_noise005.mat',
+            'C_Difficult2_noise01.mat', 'C_Difficult2_noise015.mat',
+            'C_Difficult2_noise02.mat', 'C_Drift_Easy2_noise015.mat',
+            'C_Easy1_noise005.mat', 'C_Easy1_noise01.mat', 'C_Easy1_noise015.mat',
+            'C_Easy1_noise01_short.mat', 'C_Easy1_noise02.mat',
+            'C_Easy1_noise025.mat', 'C_Easy1_noise03.mat',
+            'C_Easy1_noise035.mat', 'C_Easy1_noise04.mat',
+            'C_Easy2_noise005.mat', 'C_Easy2_noise01.mat',
+            'C_Easy2_noise015.mat', 'C_Easy2_noise02.mat',
+            'C_Test_LFPcorr_Easy2_noise015.mat',  'times_C_Difficult1_noise015.mat'
+            ]
+    fname = fPA+fPB+fSig[N]
+    fdata = sio.loadmat(fname, struct_as_record=0, squeeze_me=1)
+    signal = -fdata['data']
+    return signal
 
 
 def main(N):
-    fname = fPA+fPB+fSig[N]
-    fdata = sio.loadmat(fname, struct_as_record=0, squeeze_me=1)
-    sig = -fdata['data']
+    '''
+        Makes this work for you by changing the paths to your need,
+        Read the functions, some of them are sort of documented
+    '''
+    sig = loadQQ(N)
     dF = Dw(sig, w=5, s=1)
     dQ = Dw(sig, w=15, s=1)
     spIX = spkDet(-dF, method='QQ', T=4, ori='neg')
